@@ -190,7 +190,7 @@ var IDBStorage = (function () {
     IDBStorage.prototype.setItem = function (key, content, category, name, description) {
         var _this = this;
         return this.deleteItem(key)
-            .then(function () { return _this.insertItem(key, content, category, name, description); });
+            .then(function () { return _this.insertItem(key, content, category, name, description); }).catch(function () { });
     };
     IDBStorage.prototype.clear = function () {
         var _this = this;

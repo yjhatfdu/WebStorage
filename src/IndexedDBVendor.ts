@@ -173,7 +173,7 @@ class IDBStorage implements IWebStorage{
     }
     setItem(key,content,category?,name?,description?){
         return this.deleteItem(key)
-            .then(()=>this.insertItem(key,content,category,name,description))
+            .then(()=>this.insertItem(key,content,category,name,description)).catch(()=>{})
     }
     clear(){
         return new Promise(resolve=>{
