@@ -1,1 +1,2 @@
 # WebStorage
+简单的封装了一下indexedDB和websql，用来以kv的形式存string，arraybuffer，blob和object，摆脱了localstorage5m的坑爹限制，实测在各大浏览器上都可以存很多内容（大于1G）包括iOS的Safari。如果很老的浏览器建议自备promise pollyfill
