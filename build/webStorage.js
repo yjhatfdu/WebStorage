@@ -58,7 +58,7 @@ var IDBStorage = (function () {
                 var payloads = tx.objectStore('payloads');
                 var meta = tx.objectStore('meta');
                 var payload = content;
-                var type;
+                var type = void 0;
                 if (content instanceof ArrayBuffer) {
                     payload = new Blob([content]);
                     type = DataType.arraybuffer;
@@ -95,22 +95,22 @@ var IDBStorage = (function () {
         return new Promise(function (resolve, reject) {
             try {
                 var tx = _this.db.transaction(['payloads', 'meta'], 'readonly');
-                var payloads = tx.objectStore('payloads');
+                var payloads_1 = tx.objectStore('payloads');
                 var meta = tx.objectStore('meta');
                 meta.get(key).onsuccess = (function (e) {
                     var metaInfo = e.target.result;
-                    payloads.get(key).onsuccess = (function (e) {
+                    payloads_1.get(key).onsuccess = (function (e) {
                         if (!e.target.result) {
                             resolve(null);
                         }
                         var payload = e.target.result['payload'];
                         switch (metaInfo['type']) {
                             case DataType.arraybuffer: {
-                                var reader = new FileReader();
-                                reader.onload = function (e) {
-                                    resolve(reader.result);
+                                var reader_1 = new FileReader();
+                                reader_1.onload = function (e) {
+                                    resolve(reader_1.result);
                                 };
-                                reader.readAsArrayBuffer(payload);
+                                reader_1.readAsArrayBuffer(payload);
                                 break;
                             }
                             case DataType.object: {
@@ -149,10 +149,10 @@ var IDBStorage = (function () {
         return new Promise(function (resolve, reject) {
             try {
                 var tx = _this.db.transaction(['meta'], 'readonly');
-                var range;
+                var range = void 0;
                 if (category)
                     range = IDBKeyRange.only(category);
-                var req;
+                var req = void 0;
                 req = category ? tx.objectStore('meta')
                     .index('category')
                     .openCursor(range) :
@@ -180,8 +180,8 @@ var IDBStorage = (function () {
     IDBStorage.prototype.totalSize = function () {
         return this.listItems().then(function (list) {
             var sum = 0;
-            for (var _i = 0; _i < list.length; _i++) {
-                var item = list[_i];
+            for (var _i = 0, list_1 = list; _i < list_1.length; _i++) {
+                var item = list_1[_i];
                 sum += item['size'];
             }
             return sum;
@@ -202,7 +202,7 @@ var IDBStorage = (function () {
         });
     };
     return IDBStorage;
-})();
+}());
 /**
  * Created by yjh on 16/5/2.
  */
@@ -358,7 +358,7 @@ var WebSqlStorage = (function () {
         });
     };
     return WebSqlStorage;
-})();
+}());
 ///<reference path="Storage.ts"/>
 WebStorage = (function () {
     if (window.indexedDB) {
