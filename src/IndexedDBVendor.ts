@@ -87,6 +87,9 @@ class IDBStorage implements IWebStorage{
                 meta.get(key).onsuccess=(e=>{
                     let metaInfo=e.target.result;
                     payloads.get(key).onsuccess=(e=>{
+                        if(!e.target.result){
+                            resolve(null)
+                        }
                         let payload=e.target.result['payload'];
                         switch (metaInfo['type']){
                             case DataType.arraybuffer:{

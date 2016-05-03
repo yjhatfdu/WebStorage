@@ -100,6 +100,9 @@ var IDBStorage = (function () {
                 meta.get(key).onsuccess = (function (e) {
                     var metaInfo = e.target.result;
                     payloads.get(key).onsuccess = (function (e) {
+                        if (!e.target.result) {
+                            resolve(null);
+                        }
                         var payload = e.target.result['payload'];
                         switch (metaInfo['type']) {
                             case DataType.arraybuffer: {
