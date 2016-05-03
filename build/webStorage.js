@@ -419,3 +419,4 @@ function WebStorageVendor(vendor) {
         WebStorage = new IDBStorage();
     }
 }
+//# sourceMappingURL=webStorage.js.map
