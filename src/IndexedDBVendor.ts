@@ -6,6 +6,19 @@
     ///<reference path="Storage.ts"/>
     ///<reference path="../typings/promise/promise.d.ts"/>
 
+function checkInit(target,name,descriptor){
+    let func=descriptor.value;
+    descriptor.value=function(){
+        let args=arguments;
+        if(this.initialized==false){
+            return this.init().then(()=>{
+                return func.apply(this,args)
+            });
+        }else{
+            return func.apply(this,args)
+        }
+    }
+}
 
 class IDBStorage implements IWebStorage{
     private db;
@@ -78,6 +91,7 @@ class IDBStorage implements IWebStorage{
         });
     }
 
+    @checkInit
     getItem(key){
         return new Promise((resolve,reject)=>{
             try{
@@ -88,7 +102,8 @@ class IDBStorage implements IWebStorage{
                     let metaInfo=e.target.result;
                     payloads.get(key).onsuccess=(e=>{
                         if(!e.target.result){
-                            resolve(null)
+                            resolve(null);
+                            return
                         }
                         let payload=e.target.result['payload'];
                         switch (metaInfo['type']){
@@ -116,6 +131,7 @@ class IDBStorage implements IWebStorage{
         })
     }
 
+    @checkInit
     deleteItem(key){
         return new Promise((resolve,reject)=>{
             try{
@@ -130,6 +146,7 @@ class IDBStorage implements IWebStorage{
         })
     }
 
+    @checkInit
     listItems(category?):Promise.IThenable<Array<any>>{
         return new Promise((resolve,reject)=>{
             try{
@@ -162,6 +179,7 @@ class IDBStorage implements IWebStorage{
         })
     }
 
+    @checkInit
     totalSize(){
         return this.listItems().then(list=>{
             var sum=0;
@@ -171,10 +189,13 @@ class IDBStorage implements IWebStorage{
             return sum
         })
     }
+    @checkInit
     setItem(key,content,category?,name?,description?){
         return this.deleteItem(key)
             .then(()=>this.insertItem(key,content,category,name,description)).catch(()=>{})
     }
+
+    @checkInit
     clear(){
         return new Promise(resolve=>{
             let tx=this.db.transaction(['meta','payloads'],'readwrite');

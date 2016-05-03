@@ -1,3 +1,9 @@
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
 var DataType;
 (function (DataType) {
     DataType[DataType["string"] = 0] = "string";
@@ -10,6 +16,21 @@ var DataType;
  */
 ///<reference path="Storage.ts"/>
 ///<reference path="../typings/promise/promise.d.ts"/>
+function checkInit(target, name, descriptor) {
+    var func = descriptor.value;
+    descriptor.value = function () {
+        var _this = this;
+        var args = arguments;
+        if (this.initialized == false) {
+            return this.init().then(function () {
+                return func.apply(_this, args);
+            });
+        }
+        else {
+            return func.apply(this, args);
+        }
+    };
+}
 var IDBStorage = (function () {
     function IDBStorage() {
         this.initialized = false;
@@ -102,6 +123,7 @@ var IDBStorage = (function () {
                     payloads_1.get(key).onsuccess = (function (e) {
                         if (!e.target.result) {
                             resolve(null);
+                            return;
                         }
                         var payload = e.target.result['payload'];
                         switch (metaInfo['type']) {
@@ -201,6 +223,24 @@ var IDBStorage = (function () {
             tx.oncomplete = function (e) { return resolve(null); };
         });
     };
+    __decorate([
+        checkInit
+    ], IDBStorage.prototype, "getItem", null);
+    __decorate([
+        checkInit
+    ], IDBStorage.prototype, "deleteItem", null);
+    __decorate([
+        checkInit
+    ], IDBStorage.prototype, "listItems", null);
+    __decorate([
+        checkInit
+    ], IDBStorage.prototype, "totalSize", null);
+    __decorate([
+        checkInit
+    ], IDBStorage.prototype, "setItem", null);
+    __decorate([
+        checkInit
+    ], IDBStorage.prototype, "clear", null);
     return IDBStorage;
 }());
 /**

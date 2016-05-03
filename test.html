@@ -9,7 +9,9 @@
 </body>
 <script src="build/webStorage.js"></script>
 <script>
-
+WebStorage.getItem('test').then(function (result) {
+    console.log(result)
+})
 
 </script>
 </html>
