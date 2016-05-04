@@ -75,36 +75,39 @@ var IDBStorage = (function () {
         if (description === void 0) { description = ''; }
         return new Promise(function (resolve, reject) {
             try {
-                var tx = _this.db.transaction(['payloads', 'meta'], 'readwrite');
-                var payloads = tx.objectStore('payloads');
-                var meta = tx.objectStore('meta');
-                var payload = content;
-                var type = void 0;
+                var tx_1 = _this.db.transaction(['payloads'], 'readwrite');
+                var payloads = tx_1.objectStore('payloads');
+                var payload_1 = content;
+                var type_1;
                 if (content instanceof ArrayBuffer) {
-                    payload = new Blob([content]);
-                    type = DataType.arraybuffer;
+                    payload_1 = new Blob([content]);
+                    type_1 = DataType.arraybuffer;
                 }
                 else if (content instanceof Blob) {
-                    type = DataType.blob;
+                    type_1 = DataType.blob;
                 }
                 else if (typeof content == 'string') {
-                    type = DataType.string;
+                    type_1 = DataType.string;
                 }
                 else {
-                    payload = JSON.stringify(payload);
-                    type = DataType.object;
+                    payload_1 = JSON.stringify(payload_1);
+                    type_1 = DataType.object;
                 }
-                payloads.add({ 'id': key, 'payload': payload });
-                meta.add({
-                    'id': key,
-                    'size': payload.size || payload.length,
-                    'type': type,
-                    'category': category,
-                    'name': name,
-                    'description': description
-                });
-                tx.oncomplete = function () { return resolve(null); };
-                tx.onerror = function (e) { return reject(e.target.error); };
+                payloads.add({ 'id': key, 'payload': payload_1 });
+                tx_1.oncomplete = function (e) {
+                    var tx2 = _this.db.transaction(['meta'], 'readwrite');
+                    var meta = tx2.objectStore('meta');
+                    meta.add({
+                        'id': key,
+                        'size': payload_1.size || payload_1.length,
+                        'type': type_1,
+                        'category': category,
+                        'name': name,
+                        'description': description
+                    });
+                    tx2.oncomplete = function () { return resolve(null); };
+                    tx2.onerror = tx_1.onerror = function (e) { return reject(e.target.error); };
+                };
             }
             catch (e) {
                 reject(e);
@@ -115,12 +118,13 @@ var IDBStorage = (function () {
         var _this = this;
         return new Promise(function (resolve, reject) {
             try {
-                var tx = _this.db.transaction(['payloads', 'meta'], 'readonly');
-                var payloads_1 = tx.objectStore('payloads');
-                var meta = tx.objectStore('meta');
+                var tx2 = _this.db.transaction(['meta'], 'readonly');
+                var meta = tx2.objectStore('meta');
                 meta.get(key).onsuccess = (function (e) {
                     var metaInfo = e.target.result;
-                    payloads_1.get(key).onsuccess = (function (e) {
+                    var tx = _this.db.transaction(['payloads'], 'readonly');
+                    var payloads = tx.objectStore('payloads');
+                    payloads.get(key).onsuccess = (function (e) {
                         if (!e.target.result) {
                             resolve(null);
                             return;
@@ -155,10 +159,14 @@ var IDBStorage = (function () {
         var _this = this;
         return new Promise(function (resolve, reject) {
             try {
-                var tx = _this.db.transaction(['meta', 'payloads'], 'readwrite');
+                var tx = _this.db.transaction(['meta'], 'readwrite');
                 tx.objectStore('meta').delete(key);
-                tx.objectStore('payloads').delete(key);
-                tx.oncomplete = function (e) { return resolve(null); };
+                tx.oncomplete = function (e) {
+                    var tx2 = _this.db.transaction(['payloads'], 'readwrite');
+                    tx2.objectStore('payloads').delete(key);
+                    tx2.oncomplete = function (e) { return resolve(null); };
+                    tx2.onerror = function (e) { return resolve(null); };
+                };
                 tx.onerror = function (e) { return resolve(null); };
             }
             catch (e) {
@@ -217,9 +225,10 @@ var IDBStorage = (function () {
     IDBStorage.prototype.clear = function () {
         var _this = this;
         return new Promise(function (resolve) {
-            var tx = _this.db.transaction(['meta', 'payloads'], 'readwrite');
+            var tx = _this.db.transaction(['meta'], 'readwrite');
             tx.objectStore('meta').clear();
-            tx.objectStore('payloads').clear();
+            var tx2 = _this.db.transaction(['payloads'], 'readwrite');
+            tx2.objectStore('payloads').clear();
             tx.oncomplete = function (e) { return resolve(null); };
         });
     };

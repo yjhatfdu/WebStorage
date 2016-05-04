@@ -57,9 +57,10 @@ class IDBStorage implements IWebStorage{
     insertItem(key,content,category='_default',name='',description=''){
         return new Promise((resolve,reject)=>{
             try{
-                let tx=this.db.transaction(['payloads','meta'],'readwrite');
+                let tx=this.db.transaction(['payloads'],'readwrite');
+
                 let payloads=tx.objectStore('payloads');
-                let meta=tx.objectStore('meta');
+
                 let payload=content;
                 let type;
                 if (content instanceof ArrayBuffer){
@@ -74,17 +75,21 @@ class IDBStorage implements IWebStorage{
                     type=DataType.object
                 }
                 payloads.add({'id':key,'payload':payload});
+                tx.oncomplete=e=>{
+                    let tx2=this.db.transaction(['meta'],'readwrite');
+                    let meta=tx2.objectStore('meta');
+                    meta.add({
+                        'id':key,
+                        'size':payload.size||payload.length,
+                        'type':type,
+                        'category':category,
+                        'name':name,
+                        'description':description
+                    });
+                    tx2.oncomplete=()=>resolve(null);
+                    tx2.onerror=tx.onerror=(e)=>reject(e.target.error);
+                };
 
-                meta.add({
-                    'id':key,
-                    'size':payload.size||payload.length,
-                    'type':type,
-                    'category':category,
-                    'name':name,
-                    'description':description
-                });
-                tx.oncomplete=()=>resolve(null);
-                tx.onerror=(e)=>reject(e.target.error);
             }catch (e){
                 reject(e)
             }
@@ -95,11 +100,15 @@ class IDBStorage implements IWebStorage{
     getItem(key){
         return new Promise((resolve,reject)=>{
             try{
-                let tx=this.db.transaction(['payloads','meta'],'readonly');
-                let payloads=tx.objectStore('payloads');
-                let meta=tx.objectStore('meta');
+
+                let tx2=this.db.transaction(['meta'],'readonly');
+                let meta=tx2.objectStore('meta');
+
                 meta.get(key).onsuccess=(e=>{
                     let metaInfo=e.target.result;
+                    let tx=this.db.transaction(['payloads'],'readonly');
+
+                    let payloads=tx.objectStore('payloads');
                     payloads.get(key).onsuccess=(e=>{
                         if(!e.target.result){
                             resolve(null);
@@ -135,10 +144,14 @@ class IDBStorage implements IWebStorage{
     deleteItem(key){
         return new Promise((resolve,reject)=>{
             try{
-                let tx=this.db.transaction(['meta','payloads'],'readwrite');
+                let tx=this.db.transaction(['meta'],'readwrite');
                 tx.objectStore('meta').delete(key);
-                tx.objectStore('payloads').delete(key);
-                tx.oncomplete=e=>resolve(null);
+                tx.oncomplete=e=>{
+                    let tx2=this.db.transaction(['payloads'],'readwrite');
+                    tx2.objectStore('payloads').delete(key);
+                    tx2.oncomplete=e=>resolve(null);
+                    tx2.onerror=e=>resolve(null)
+                };
                 tx.onerror=e=>resolve(null);
             }catch (e){
                 reject(e)
@@ -198,10 +211,12 @@ class IDBStorage implements IWebStorage{
     @checkInit
     clear(){
         return new Promise(resolve=>{
-            let tx=this.db.transaction(['meta','payloads'],'readwrite');
+            let tx=this.db.transaction(['meta'],'readwrite');
             tx.objectStore('meta').clear();
-            tx.objectStore('payloads').clear();
+            let tx2=this.db.transaction(['payloads'],'readwrite');
+            tx2.objectStore('payloads').clear();
             tx.oncomplete=e=>resolve(null)
+
         })
     }
 }
